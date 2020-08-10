@@ -8,6 +8,7 @@
 
 void readFromStdin();
 void  printOptionStdin(char*);
+void readFile(FILE*);
 
 unsigned long int word = 0, ch = 0, line = 0, maxLenLine = 0; 
 int main(int argc, char*argv[]){
@@ -15,30 +16,92 @@ int main(int argc, char*argv[]){
     if(argc == 1){  // read from stdin with no option provided
         readFromStdin();
         printf("\t%u\t%u\t%u\n",line, word,ch);
-    }else if(argc==2){ // possibilities: 1. stdin with -,2. stdin with -[option] 3. read from a file, 4. '*' :read all files in dir
+    }else if(argc==2){ // possibilities: 1. stdin with -,2. stdin with -[option] 3. '*' :read all files in dir, 4.read from a file
         
         options = argv[1];
-        if(strcmp("-",options)==0){
+        if(options[0] == '-' && options[1] == '\0'){
             // 1: stdin with -
             readFromStdin();
             printf("\t%u\t%u\t%u -\n",line, word,ch);
-        }else if(argv[1][0] == '-' && strlen(argv[1]) > 1){
+        }else if(options[0] == '-' && strstr("l",options) || strstr("c",options) || strstr("w",options)
+            ||(strstr("m",options) || strstr("L",options)) ){
             // 2: stdin with -[option]
             readFromStdin();
             printOptionStdin(options);
-        }else if((strstr("-",options))==NULL){
-            // 3 .file
-        }else if(strstr("*",options) != NULL){
-            // 4. *
+        }else if((strstr("*",options))){
+            // 3 . *
+            
+            printf("lol");
+
+        }else{
+            // 4. file
+            //TODO : first check that it's not a directory.
+            FILE * fp = fopen(options,"r");
+            if(fp != NULL){
+                readFile(fp);
+                printf("%u\t%u\t%u\t%s\n",line,word,ch,options);
+            }
         }
     }
     
 }
-
+void operateDir(char* mode){
+    int status;
+    struct stat st_buf;
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(".");
+    if(d){
+        while((dir = readdir(d)) != NULL){
+            status = stat(dir->d_name,&st_buf);
+            if(status !=0){
+                printf("Error %d\n",errno);
+                exit(1);
+            }
+            // now let's check whether the current file is a regular file or a dircetory
+            if(S_ISREG(st_buf.st_mode)){
+                // regualr file
+               
+            }if(S_ISDIR(st_buf.st_mode)){
+                // directory
+                printf("%s :Is a directory\n",dir->d_name);
+            }
+        }
+        closedir(d);
+    }else{
+        printf("error opening dir\n");
+    }
+}
 void readFromStdin(){
     int c, flag = 0,nFlag=0;
     int currentLenLine = 0;
     while((c = fgetc(stdin)) != EOF){
+        if(!isspace(c) && flag ==0){
+            word++;
+            flag = 1;
+        }else if(isspace(c) || isblank(c)){
+            flag = 0;
+        }
+        ch++;
+        currentLenLine++;
+        if(c=='\n'){
+            nFlag = 1;  // if we encounter EOF without getting \n, then the last word has to be incremented
+            line++;
+            if(currentLenLine > maxLenLine){
+                maxLenLine = currentLenLine;
+            }
+             currentLenLine = 0;  // set it 0 for next line's count
+        }
+    }
+    if(nFlag == 0){
+        maxLenLine = currentLenLine;
+    }
+    return;
+}
+void readFile(FILE *fp){
+    int c, flag = 0,nFlag=0;
+    int currentLenLine = 0;
+    while((c = fgetc(fp)) != EOF){
         if(!isspace(c) && flag ==0){
             word++;
             flag = 1;
