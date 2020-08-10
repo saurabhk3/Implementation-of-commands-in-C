@@ -25,7 +25,12 @@ int main(int argc, char*argv[]){
         printf("\t%u\t%u\t%u\n",line, word,ch);
     }else if(argc==2){ // possibilities: 1. stdin with -,2. stdin with -[option] 3. '*' :read all files in dir, 4.read from a file
         
+		////////////////////////////////////////////////////WORK ON --files0-from=//////////////////////////////////
         options = argv[1];
+		if(strstr(options,"--files0-from=")){  
+			printOptionStdin(options,"");
+			exit(1);
+		}
         if(options[0] == '-' && options[1] == '\0'){
             // 1: stdin with -
             readFromStdin();
@@ -74,6 +79,31 @@ int main(int argc, char*argv[]){
 		else if((strstr("*",argv[1])) != NULL){ // 4
 			operateDir(argv[2]);
 		}
+    }else{ // wc a.txt b.txt c.txt ... -[opt]
+            int i = 1;
+            while(i<argc){
+                if(strstr(argv[i],"-") == NULL){
+                    // it's a file
+                    readFile(argv[i]);
+                    total_ch += ch;
+                    total_line += line;
+                    total_word += word;
+                    if(maxLenLine > totalMaximumLineLen){
+                        totalMaximumLineLen = maxLenLine;
+                    }
+                    printOptionStdin("",argv[i]);
+                    ch = 0;
+                    line = 0;
+                    word = 0;
+                    maxLenLine = 0;
+                    
+                }
+                i++;
+            }
+            printTotal("");
+            
+            
+            
     }
     
 }
@@ -149,7 +179,7 @@ void readFromStdin(){
 void readFile(char * s){
 	FILE * fp = fopen(s,"r");
 	if(fp == NULL){
-		printf("Error opening  file %s\n",s);
+		printf("Error opening  file %s: No such file or directory\n",s);
 		exit(1);
 	}
     int c, flag = 0,nFlag=0;
@@ -242,7 +272,33 @@ void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
                 printf(" %u",maxLenLine);
             }else if(strcmp("--words",s)==0){
                 printf(" %u",word);
-            }else{
+            }else if(strcmp(s,"--files0-from=")>0){  // s should also contain the filename, so it's size should be greater
+				FILE *fp;
+				char * source;
+				source = strtok(s,"--files0-from=");
+				if(source == NULL){
+					printf("Unrecognized option '%s'",s);
+					exit(1);
+				}
+				if((fp=fopen(source,"r")) != NULL){
+					// read each file and perform operations.
+					char names[100];
+					char c;
+					int i =0;
+					while((c = fgetc(fp)) != EOF){
+						if(c != '\0'){
+							names[i] = c;
+							i++;
+						}else if(c == '\0'){
+							names[i] = c;
+							readFile(names);
+							printOptionStdin("",names);
+							strcpy(names,0);
+							i = 0;
+						}
+					}
+				}
+			}else{
                 printf("Invalid input\n");
 				exit(1);
             }
