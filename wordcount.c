@@ -87,7 +87,10 @@ int main(int argc, char*argv[]){
                 if(strstr(argv[j],"-") != NULL){
                     f = 1;
                     char * tok = strtok(argv[j],"-");
-                    strcat(mode,tok);
+                    if(strstr(mode,tok) != NULL){   // so that any letter is not repeated, otherwise it'll lead error while printing
+                                                    // e.g -mLm => no output as there are no option in  print method for this.
+                        strcat(mode,tok);
+                    }
                 }
                 j++;
             }
@@ -199,12 +202,12 @@ void readFile(char * s){
     int c, flag = 0,nFlag=0;
     int currentLenLine = 0;
     while((c = fgetc(fp)) != EOF){
-        if(!isspace(c) && flag ==0){
-            word++;
-            flag = 1;
-        }else if(isspace(c) || isblank(c)){
-            flag = 0;
-        }
+        if((isalnum(c) || ispunct(c))&& flag ==0){
+                word++;
+                flag =1;
+        }else if(isspace(c)){
+                flag = 0;
+            }
         ch++;
         currentLenLine++;
         if(c=='\n'){
