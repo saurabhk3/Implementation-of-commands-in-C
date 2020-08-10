@@ -56,7 +56,7 @@ int main(int argc, char*argv[]){
 			readFile(argv[1]);
 			printOptionStdin(argv[2],argv[1]);
 			fileNameFlag = 1;
-		}else if(((strstr(argv[1],"-") == NULL) && (strstr(argv[2],"-")) == NULL)){  // 3
+		}else if(((strstr(argv[1],"-") == NULL) && (strstr(argv[2],"-")) == NULL)&& (strstr(argv[1],"*") == NULL)){  // 3
 			readFile(argv[1]);
 			total_ch += ch;
 			total_word += word;
@@ -71,7 +71,7 @@ int main(int argc, char*argv[]){
 			printf(" %u %u %u %s\n",line,word,ch,argv[2]);
 			printf(" %u %u %u total\n",total_line,total_word,total_ch);
 		}
-		else if(((strstr("*",argv[1])) != NULL) && ((strstr("-",argv[2])) != NULL)){ // 4
+		else if((strstr("*",argv[1])) != NULL){ // 4
 			operateDir(argv[2]);
 		}
     }
@@ -243,11 +243,13 @@ void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
             }else if(strcmp("--words",s)==0){
                 printf(" %u",word);
             }else{
-                printf("\tInvalid input");
+                printf("Invalid input\n");
+				exit(1);
             }
         }
     }else{
-        printf("\tInvalid input");
+        printf("Invalid input\n");
+		exit(1);
     }
     if(strlen(file)>0){
 		printf(" %s",file);
@@ -319,11 +321,13 @@ void printTotal(char *s){
             }else if(strcmp("--total_words",s)==0){
                 printf(" %u",total_word);
             }else{
-                printf("\tInvalid input");
+                printf("Invalid input\n");
+				exit(1);
             }
         }
     }else{
-        printf("\tInvalid input");
+        printf("Invalid input\n");
+		exit(1);
     }
     printf(" total\n");
 }
