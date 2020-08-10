@@ -6,11 +6,14 @@
 #include<sys/stat.h>
 #include<errno.h>
 
+// TODO include --files option
 void readFromStdin();
 void  printOptionStdin(char*);
 void readFile(FILE*);
+void operateDir(char*);
 
 unsigned long int word = 0, ch = 0, line = 0, maxLenLine = 0; 
+unsigned long int total_word = 0, total_ch = 0, total_line = 0;
 int main(int argc, char*argv[]){
     char *options;
     if(argc == 1){  // read from stdin with no option provided
@@ -30,9 +33,8 @@ int main(int argc, char*argv[]){
             printOptionStdin(options);
         }else if((strstr("*",options))){
             // 3 . *
-            
-            printf("lol");
-
+            // input=> ./wc '*' so that it can get it, my OS interprets wild card char in this way
+           operateDir("");
         }else{
             // 4. file
             //TODO : first check that it's not a directory.
@@ -61,12 +63,27 @@ void operateDir(char* mode){
             // now let's check whether the current file is a regular file or a dircetory
             if(S_ISREG(st_buf.st_mode)){
                 // regualr file
-               
+               FILE *fp;
+               if((fp=fopen(dir->d_name,"r")) != NULL){
+                readFile(fp);
+               }
             }if(S_ISDIR(st_buf.st_mode)){
                 // directory
+                if(dir->d_name[0] == '.'){
+                    continue;  // we need not to consider them, wc also ignores it.
+                }
                 printf("%s :Is a directory\n",dir->d_name);
             }
+            printf("%u\t%u\t%u\t%s\n",line,word,ch,dir->d_name);
+            total_ch += ch;
+            total_line += line;
+            total_word += word;
+            line = 0;
+            word = 0;
+            ch = 0;
+
         }
+        printf("%u\t%u\t%u\ttotal\n",total_line,total_word,total_ch);
         closedir(d);
     }else{
         printf("error opening dir\n");
