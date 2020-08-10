@@ -80,6 +80,20 @@ int main(int argc, char*argv[]){
 			operateDir(argv[2]);
 		}
     }else{ // wc a.txt b.txt c.txt ... -[opt]
+            char mode[30];
+            int j = 1, f = 0;
+            mode[0] = '-';
+            while(j<argc){
+                if(strstr(argv[j],"-") != NULL){
+                    f = 1;
+                    char * tok = strtok(argv[j],"-");
+                    strcat(mode,tok);
+                }
+                j++;
+            }
+            if(f == 0){
+                strcpy(mode,"");
+            }
             int i = 1;
             while(i<argc){
                 if(strstr(argv[i],"-") == NULL){
@@ -91,7 +105,7 @@ int main(int argc, char*argv[]){
                     if(maxLenLine > totalMaximumLineLen){
                         totalMaximumLineLen = maxLenLine;
                     }
-                    printOptionStdin("",argv[i]);
+                    printOptionStdin(mode,argv[i]);
                     ch = 0;
                     line = 0;
                     word = 0;
@@ -100,7 +114,7 @@ int main(int argc, char*argv[]){
                 }
                 i++;
             }
-            printTotal("");
+            printTotal(mode);
             
             
             
