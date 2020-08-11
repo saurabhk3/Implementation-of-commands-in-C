@@ -24,8 +24,7 @@ int main(int argc, char*argv[]){
         readFromStdin();
         printf("\t%u\t%u\t%u\n",line, word,ch);
     }else if(argc==2){ // possibilities: 1. stdin with -,2. stdin with -[option] 3. '*' :read all files in dir, 4.read from a file
-        
-		////////////////////////////////////////////////////WORK ON --files0-from=//////////////////////////////////
+                      // --files0-from=
         options = argv[1];
 		if(strstr(options,"--files0-from=")){  
 			printOptionStdin(options,"");
@@ -52,8 +51,13 @@ int main(int argc, char*argv[]){
 			fileNameFlag = 1;
             printf(" %u\t%u\t%u\t%s\n",line,word,ch,options);
         }
-    }else if(argc == 3){  // 1. wc - -opt , 2. wc abc.txt -opt 3. wc abc.txt cde.txt 4. wc * -opt
-        if(argv[1][0] == '-'){ // 1
+    }else if(argc == 3){  // 1. wc - -opt , 2. wc abc.txt -opt 3. wc abc.txt cde.txt 4. wc * -opt 5. wc --files0-from= -opt
+        if(strstr(argv[1],"--files0-from=")){ // 5
+            printOptionStdin(argv[1],argv[2]);      
+            // in normal cases, the 2nd argument takes filename, but since filenames will be taken from inside file in this case,
+            // we are passing the options here, so that those can be printed.
+        }
+        else if(argv[1][0] == '-'){ // 1
             fileNameFlag = 1;
             readFromStdin();
             printOptionStdin(argv[2],"-");
@@ -226,6 +230,7 @@ void readFile(char * s){
     return;
 }
 void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
+    int flag = 0;
 	if(strcmp(s,"")==0){
 		printf(" %u\t%u\t%u\t%s\n",line,word,ch,file);
 		return;
@@ -289,14 +294,14 @@ void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
                 printf(" %u",maxLenLine);
             }else if(strcmp("--words",s)==0){
                 printf(" %u",word);
-            }else if(strcmp(s,"--files0-from=")>0){  // s should also contain the filename, so it's size should be greater
+            }else if(strstr(s,"--files0-from=") != NULL){  // s should also contain the filename, so it's size should be greater
 				FILE *fp;
-				char * source;
-				source = strtok(s,"--files0-from=");
-				if(source == NULL){
-					printf("Unrecognized option '%s'",s);
-					exit(1);
-				}
+				char source[50];
+                int i = 0, j =14;  // --files0-from=
+                while(s[j] != '\0'){
+                    source[i++] = s[j++];
+                }
+                source[i] = '\0';
 				if((fp=fopen(source,"r")) != NULL){
 					// read each file and perform operations.
 					char names[100];
@@ -307,13 +312,24 @@ void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
 							names[i] = c;
 							i++;
 						}else if(c == '\0'){
-							names[i] = c;
-							readFile(names);
-							printOptionStdin("",names);
-							strcpy(names,0);
+							names[i] = '\0';
+							// printf("%s\t",names);
+                            readFile(names);
+							printOptionStdin(file,names); // in file the options are passed , for this one only.
+                            flag = 1;  // so that options don't get printed as file names, (line 343)
+                            total_ch += ch;
+                            total_line += line;
+                            total_word += word;
+                            totalMaximumLineLen = maxLenLine;
+                            ch = 0;
+                            word = 0;
+                            line = 0;
+                            maxLenLine = 0;
+							strcpy(names,"");
 							i = 0;
 						}
 					}
+                    printTotal(file);
 				}
 			}else{
                 printf("Invalid input\n");
@@ -324,7 +340,7 @@ void printOptionStdin(char*s,char *file){ // TODO add combiantions of lwmLc
         printf("Invalid input\n");
 		exit(1);
     }
-    if(strlen(file)>0){
+    if(strlen(file)>0 && flag==0){
 		printf(" %s",file);
 	}
     printf("\n");
